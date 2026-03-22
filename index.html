@@ -255,7 +255,7 @@ function draw(items) {
       +'<div class="ov"><div class="pbtn">&#9654;</div></div></div>'
       +'<div class="info"><div class="ttl">'+ttl+'</div>'
       +'<div class="typ">'+(isM?'Movie':'TV Show')+'</div></div>';
-    (function(u){ c.addEventListener('click', function(){ window.open(u,'_blank'); }); })(url);
+    (function(u){ c.addEventListener('click', function(){ var w=window.open('about:blank','_blank'); w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Google</title><link rel="icon" href="https://www.google.com/favicon.ico"><style>*{margin:0;padding:0}html,body{width:100%;height:100%;background:#000;overflow:hidden}iframe{position:fixed;top:0;left:0;width:100%;height:100%;border:none}</style></head><body><iframe src="'+u+'" allowfullscreen allow="autoplay;fullscreen"></iframe></body></html>'); w.document.close(); }); })(url);
     grid.appendChild(c);
   });
 }
