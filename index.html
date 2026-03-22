@@ -297,64 +297,36 @@ function aiDoSend() {
   thinkTxt.classList.add('thinking');
 
   var model = aiMdl.value;
-  var full = '';
 
-  fetch('https://text.pollinations.ai/openai', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      
-      
-      
-    },
-    body: JSON.stringify({
-      model: model,
-      stream: true,
-      messages: [
-        { role: 'system', content: 'You are MRC AI, a helpful assistant built into the MRC platform. Be concise and helpful.' }
-      ].concat(aiHistory.slice(-14))
-    })
-  })
-  .then(function(res) {
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    thinkTxt.textContent = '';
-    thinkTxt.classList.remove('thinking');
-    var reader = res.body.getReader();
-    var dec = new TextDecoder();
-
-    function pump() {
-      return reader.read().then(function(result) {
-        if (result.done) {
-          aiHistory.push({ role: 'assistant', content: full });
-          aiTyping = false;
-          aiSend.disabled = !aiInp.value.trim();
-          return;
-        }
-        var lines = dec.decode(result.value, { stream: true }).split('\n');
-        lines.forEach(function(line) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              var chunk = JSON.parse(line.slice(6));
-              var delta = chunk.choices[0].delta.content;
-              if (delta) {
-                full += delta;
-                thinkTxt.textContent = full;
-                aiMsgs.scrollTop = aiMsgs.scrollHeight;
-              }
-            } catch(e) {}
-          }
-        });
-        return pump();
-      });
-    }
-    return pump();
-  })
-  .catch(function(e) {
-    thinkTxt.classList.remove('thinking');
-    thinkTxt.textContent = 'Error: ' + e.message;
-    aiTyping = false;
-    aiSend.disabled = !aiInp.value.trim();
+  // Build a simple prompt from history
+  var prompt = 'You are MRC AI, a helpful assistant. Be concise.\n\n';
+  aiHistory.slice(-10).forEach(function(m) {
+    prompt += (m.role === 'user' ? 'User: ' : 'Assistant: ') + m.content + '\n';
   });
+  prompt += 'Assistant:';
+
+  // Pollinations simple GET endpoint — no auth, no CORS issues
+  var url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt) + '?model=' + model + '&seed=' + Math.floor(Math.random()*99999);
+
+  fetch(url)
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(reply) {
+      thinkTxt.classList.remove('thinking');
+      thinkTxt.textContent = reply.trim();
+      aiHistory.push({ role: 'assistant', content: reply.trim() });
+      aiMsgs.scrollTop = aiMsgs.scrollHeight;
+      aiTyping = false;
+      aiSend.disabled = !aiInp.value.trim();
+    })
+    .catch(function(e) {
+      thinkTxt.classList.remove('thinking');
+      thinkTxt.textContent = 'Error: ' + e.message;
+      aiTyping = false;
+      aiSend.disabled = !aiInp.value.trim();
+    });
 }
 
 /* ── MOVIE POPUP ── */
