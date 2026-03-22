@@ -299,7 +299,7 @@ function aiDoSend() {
   var model = aiMdl.value;
   var messages = [{ role: 'system', content: 'You are MRC AI, a helpful assistant. Be concise and helpful.' }].concat(aiHistory.slice(-12));
 
-  fetch('https://api.airforce/chat/completions', {
+  fetch('https://api.airforce.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: model, messages: messages })
